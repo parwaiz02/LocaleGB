@@ -1,0 +1,57 @@
+name: Build and Test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.x' # Use the appropriate .NET version
+
+    - name: Set UK Locale
+      shell: pwsh
+      run: |
+        Write-Output "Setting UK Locale"
+        $env:DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = "false"
+        $env:LANG = "en_GB.UTF-8"
+        $env:LC_ALL = "en_GB.UTF-8"
+        [System.Globalization.CultureInfo]::DefaultThreadCurrentCulture = [System.Globalization.CultureInfo]::GetCultureInfo("en-GB")
+        [System.Globalization.CultureInfo]::DefaultThreadCurrentUICulture = [System.Globalization.CultureInfo]::GetCultureInfo("en-GB")
+        Write-Output "Locale set to: $(Get-Culture)"
+        Write-Output "UI Locale set to: $(Get-UICulture)"
+        Write-Output "Running in the set locale"
+        dotnet --version
+        Write-Output "Locale: $(Get-Culture)"
+        Write-Output "UI Locale: $(Get-UICulture)"
+      env:
+        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: false
+        LANG: en_GB.UTF-8
+        LC_ALL: en_GB.UTF-8
+
+    - name: dotnet restore and build
+      shell: pwsh
+      run: |
+        Write-Output "Running dotnet restore and build"
+        dotnet restore --interactive
+        dotnet build --configuration Release
+      env:
+        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: false
+        LANG: en_GB.UTF-8
+        LC_ALL: en_GB.UTF-8
+
+    - name: dotnet test
+      shell: pwsh
+      run: |
+        Write-Output "Running dotnet test"
+        dotnet test --configuration Release
+      env:
+        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: false
+        LANG: en_GB.UTF-8
+        LC_ALL: en_GB.UTF-8
